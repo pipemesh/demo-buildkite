@@ -1,12 +1,10 @@
 # The Buildkite half of the demo: one step builds the site and uploads
 # dist/ as build artifacts. PipeMesh creates each build (PIPEMESH_SHA is
 # the revision, PIPEMESH_RUN the PipeMesh job run) and imports dist/**
-# for its deploy stages. Replace the queue key with your hosted queue's.
+# for its deploy stages. Steps run on the cluster's default queue.
 steps:
   - label: ":hammer: build site"
     key: build
-    agents:
-      queue: hosted
     command: ./build.sh
     artifact_paths:
       - "dist/**/*"
