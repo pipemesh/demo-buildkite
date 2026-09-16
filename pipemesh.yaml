@@ -10,7 +10,7 @@ pipelines:
         stage: build
         timeout_seconds: 1800
         trigger:
-          buildkite: BUILDKITE_ORG/demo-buildkite
+          buildkite: vgonzalo/demo-buildkite
           artifacts: ["dist/**"]
 
       deploy_staging:
