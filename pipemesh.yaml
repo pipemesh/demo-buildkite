@@ -1,0 +1,39 @@
+# demo-buildkite (DESIGN-V47): the build stage is a Buildkite pipeline;
+# the deploy stages are PipeMesh script jobs on the hosted lane. One
+# revision, one Buildkite build, then staging and production in turn —
+# the board holds the revision per environment, Buildkite holds the build.
+pipelines:
+  deployment:
+    stages: [build, staging, production]
+    jobs:
+      build:
+        stage: build
+        timeout_seconds: 1800
+        trigger:
+          buildkite: BUILDKITE_ORG/demo-buildkite
+          artifacts: ["dist/**"]
+
+      deploy_staging:
+        stage: staging
+        needs: [build]
+        setup:
+          - uses: aws/role@1
+            with:
+              arn: arn:aws:iam::524843732687:role/pipemesh-demo-buildkite-deploy
+              region: us-east-1
+        script: |
+          echo "deploying $(cat dist/build.json)"
+          aws s3 sync dist/ s3://pipemesh-demo-buildkite/staging/ --delete
+          echo "staging: http://pipemesh-demo-buildkite.s3-website-us-east-1.amazonaws.com/staging/"
+
+      deploy_prod:
+        stage: production
+        needs: [deploy_staging]
+        setup:
+          - uses: aws/role@1
+            with:
+              arn: arn:aws:iam::524843732687:role/pipemesh-demo-buildkite-deploy
+              region: us-east-1
+        script: |
+          aws s3 sync dist/ s3://pipemesh-demo-buildkite/production/ --delete
+          echo "production: http://pipemesh-demo-buildkite.s3-website-us-east-1.amazonaws.com/production/"
